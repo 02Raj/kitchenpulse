@@ -1,0 +1,39 @@
+server:
+  port: ${SERVER_PORT:8083}
+
+spring:
+  application:
+    name: notify-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27018/kitchenpulse_notify}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:19092}
+    consumer:
+      group-id: kitchenpulse-notify
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      ack-mode: record
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info
+  endpoint:
+    health:
+      show-details: always
+
+kitchenpulse:
+  jwt:
+    secret: ${JWT_SECRET:kitchenpulse-dev-only-change-me-32bytes-min}
+  cors:
+    origins: ${CORS_ORIGINS:http://localhost:4200}
+  kafka:
+    order-created-topic: kitchen.orders.created
+    dlq-topic: kitchen.orders.created.dlq

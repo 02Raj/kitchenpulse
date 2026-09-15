@@ -1,0 +1,53 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/kitchenpulse}
+    username: ${DATABASE_USER:kitchenpulse}
+    password: ${DATABASE_PASSWORD:kitchenpulse}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:19092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info
+  endpoint:
+    health:
+      show-details: always
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      inventory:
+        sliding-window-size: 6
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 2
+        ignore-exceptions:
+          - com.kitchenpulse.order.common.ApiException
+
+kitchenpulse:
+  jwt:
+    secret: ${JWT_SECRET:kitchenpulse-dev-only-change-me-32bytes-min}
+    ttl: 12h
+  cors:
+    origins: ${CORS_ORIGINS:http://localhost:4200}
+  inventory:
+    base-url: ${INVENTORY_BASE_URL:http://localhost:8082}
+  kafka:
+    order-created-topic: kitchen.orders.created

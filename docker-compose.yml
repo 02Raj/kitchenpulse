@@ -1,0 +1,131 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: kitchenpulse-postgres
+    environment:
+      POSTGRES_DB: kitchenpulse
+      POSTGRES_USER: kitchenpulse
+      POSTGRES_PASSWORD: kitchenpulse
+    ports:
+      - "5433:5432"
+    volumes:
+      - kitchenpulse_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kitchenpulse -d kitchenpulse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mongo:
+    image: mongo:7
+    container_name: kitchenpulse-mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - kitchenpulse_mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.3.6
+    container_name: kitchenpulse-redpanda
+    command:
+      - redpanda
+      - start
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+      - --mode
+      - dev-container
+      - --smp
+      - "1"
+      - --default-log-level
+      - warn
+    ports:
+      - "19092:19092"
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -E 'Healthy:.+true' || exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  gateway:
+    build: ./gateway
+    container_name: kitchenpulse-gateway
+    depends_on:
+      - order-service
+      - inventory-service
+      - notify-service
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-kitchenpulse-dev-only-change-me-32bytes-min}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+      ORDER_SERVICE_URI: http://order-service:8081
+      INVENTORY_SERVICE_URI: http://inventory-service:8082
+      NOTIFY_SERVICE_URI: http://notify-service:8083
+    ports:
+      - "8088:8088"
+    profiles: ["full"]
+
+  order-service:
+    build: ./order-service
+    container_name: kitchenpulse-order
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redpanda:
+        condition: service_started
+      inventory-service:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8081
+      DATABASE_URL: jdbc:postgresql://postgres:5432/kitchenpulse
+      DATABASE_USER: kitchenpulse
+      DATABASE_PASSWORD: kitchenpulse
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      INVENTORY_BASE_URL: http://inventory-service:8082
+      JWT_SECRET: ${JWT_SECRET:-kitchenpulse-dev-only-change-me-32bytes-min}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+    ports:
+      - "8081:8081"
+    profiles: ["full"]
+
+  inventory-service:
+    build: ./inventory-service
+    container_name: kitchenpulse-inventory
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8082
+      MONGODB_URI: mongodb://mongo:27017/kitchenpulse_inventory
+      JWT_SECRET: ${JWT_SECRET:-kitchenpulse-dev-only-change-me-32bytes-min}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+    ports:
+      - "8082:8082"
+    profiles: ["full"]
+
+  notify-service:
+    build: ./notify-service
+    container_name: kitchenpulse-notify
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redpanda:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8083
+      MONGODB_URI: mongodb://mongo:27017/kitchenpulse_notify
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      JWT_SECRET: ${JWT_SECRET:-kitchenpulse-dev-only-change-me-32bytes-min}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+    ports:
+      - "8083:8083"
+    profiles: ["full"]
+
+volumes:
+  kitchenpulse_pg:
+  kitchenpulse_mongo:
