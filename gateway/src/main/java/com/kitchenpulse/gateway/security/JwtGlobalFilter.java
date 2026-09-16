@@ -54,12 +54,17 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
 	}
 
 	private static boolean isPublic(String path) {
-		return path.startsWith("/api/auth") || path.startsWith("/actuator");
+		return path.startsWith("/api/auth")
+				|| path.startsWith("/actuator")
+				|| path.startsWith("/swagger-ui")
+				|| path.startsWith("/v3/api-docs")
+				|| path.startsWith("/services/")
+				|| path.startsWith("/webjars/");
 	}
 
 	private static boolean allowed(String path, List<String> roles) {
 		if (path.startsWith("/api/kitchen")) {
-			return hasAny(roles, "STAFF", "KITCHEN", "ADMIN");
+			return hasAny(roles, "KITCHEN", "ADMIN");
 		}
 		if (path.startsWith("/api/users") && !path.equals("/api/users/me")) {
 			return hasAny(roles, "ADMIN");

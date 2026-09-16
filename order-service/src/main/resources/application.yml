@@ -43,6 +43,13 @@ resilience4j:
         ignore-exceptions:
           - com.kitchenpulse.order.common.ApiException
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
 kitchenpulse:
   jwt:
     secret: ${JWT_SECRET:kitchenpulse-dev-only-change-me-32bytes-min}

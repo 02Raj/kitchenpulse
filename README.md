@@ -39,7 +39,9 @@ Angular (POS + Kitchen board)
                     Redpanda/Kafka  →  notify-service (retry + DLQ)  →  kitchen tickets
 ```
 
-Deeper design notes: [docs/architecture.md](docs/architecture.md).
+Deeper design notes: [docs/architecture.md](docs/architecture.md).  
+**Learning microservices from this repo:** [docs/microservices-guide.md](docs/microservices-guide.md).  
+**API docs (Swagger):** [http://localhost:8088/swagger-ui.html](http://localhost:8088/swagger-ui.html) — see [docs/swagger.md](docs/swagger.md).
 
 ---
 

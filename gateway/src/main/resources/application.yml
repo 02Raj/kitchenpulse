@@ -27,6 +27,48 @@ spring:
               uri: ${NOTIFY_SERVICE_URI:http://localhost:8083}
               predicates:
                 - Path=/api/kitchen/**
+            - id: openapi-user
+              uri: ${USER_SERVICE_URI:http://localhost:8084}
+              predicates:
+                - Path=/services/user/**
+              filters:
+                - RewritePath=/services/user/(?<segment>.*), /$\{segment}
+            - id: openapi-order
+              uri: ${ORDER_SERVICE_URI:http://localhost:8081}
+              predicates:
+                - Path=/services/order/**
+              filters:
+                - RewritePath=/services/order/(?<segment>.*), /$\{segment}
+            - id: openapi-inventory
+              uri: ${INVENTORY_SERVICE_URI:http://localhost:8082}
+              predicates:
+                - Path=/services/inventory/**
+              filters:
+                - RewritePath=/services/inventory/(?<segment>.*), /$\{segment}
+            - id: openapi-notify
+              uri: ${NOTIFY_SERVICE_URI:http://localhost:8083}
+              predicates:
+                - Path=/services/notify/**
+              filters:
+                - RewritePath=/services/notify/(?<segment>.*), /$\{segment}
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs/gateway
+  swagger-ui:
+    disable-swagger-default-url: true
+    operationsSorter: method
+    tagsSorter: alpha
+    urls:
+      - name: User Service
+        url: /services/user/v3/api-docs
+      - name: Order Service
+        url: /services/order/v3/api-docs
+      - name: Inventory Service
+        url: /services/inventory/v3/api-docs
+      - name: Notify Service
+        url: /services/notify/v3/api-docs
 
 management:
   endpoints:

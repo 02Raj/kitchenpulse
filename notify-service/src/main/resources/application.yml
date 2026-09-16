@@ -31,6 +31,13 @@ management:
     health:
       show-details: always
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
 kitchenpulse:
   jwt:
     secret: ${JWT_SECRET:kitchenpulse-dev-only-change-me-32bytes-min}
