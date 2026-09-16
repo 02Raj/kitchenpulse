@@ -19,7 +19,7 @@ public class OutboxPublisher {
 		this.kafkaTemplate = kafkaTemplate;
 	}
 
-	@Scheduled(fixedDelay = 2000)
+	@Scheduled(fixedDelay = 750)
 	@Transactional
 	public void publishBatch() {
 		List<OutboxEvent> pending = outbox.findTop50ByPublishedAtIsNullOrderByCreatedAtAsc();

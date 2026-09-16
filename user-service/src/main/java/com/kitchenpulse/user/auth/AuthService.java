@@ -1,26 +1,35 @@
-package com.kitchenpulse.order.auth;
+package com.kitchenpulse.user.auth;
 
-import com.kitchenpulse.order.common.ApiException;
-import com.kitchenpulse.order.security.JwtService;
-import com.kitchenpulse.order.user.AppUser;
-import com.kitchenpulse.order.user.AppUserRepository;
+import com.kitchenpulse.user.common.ApiException;
+import com.kitchenpulse.user.role.AppRole;
+import com.kitchenpulse.user.role.AppRoleRepository;
+import com.kitchenpulse.user.security.JwtService;
+import com.kitchenpulse.user.user.AppUser;
+import com.kitchenpulse.user.user.AppUserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 public class AuthService {
 
 	private final AppUserRepository users;
+	private final AppRoleRepository roles;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtService jwtService;
 
-	public AuthService(AppUserRepository users, PasswordEncoder passwordEncoder, JwtService jwtService) {
+	public AuthService(
+			AppUserRepository users,
+			AppRoleRepository roles,
+			PasswordEncoder passwordEncoder,
+			JwtService jwtService) {
 		this.users = users;
+		this.roles = roles;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtService = jwtService;
 	}
@@ -32,6 +41,9 @@ public class AuthService {
 			throw new ApiException(HttpStatus.CONFLICT, "Email already registered");
 		}
 		AppUser user = new AppUser(UUID.randomUUID(), email, passwordEncoder.encode(request.password()), Instant.now());
+		AppRole staff = roles.findByName("STAFF")
+				.orElseThrow(() -> new IllegalStateException("STAFF role missing — run Flyway migrations"));
+		user.addRole(staff);
 		users.save(user);
 		return token(user);
 	}
@@ -44,6 +56,7 @@ public class AuthService {
 	}
 
 	private AuthResponse token(AppUser user) {
-		return new AuthResponse(jwtService.issue(user.getId(), user.getEmail()), user.getId(), user.getEmail());
+		List<String> roleNames = user.getRoles().stream().map(AppRole::getName).sorted().toList();
+		return new AuthResponse(jwtService.issue(user.getId(), user.getEmail(), roleNames), user.getId(), user.getEmail(), roleNames);
 	}
 }

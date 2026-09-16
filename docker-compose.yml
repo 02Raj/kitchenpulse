@@ -10,6 +10,7 @@ services:
       - "5433:5432"
     volumes:
       - kitchenpulse_pg:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U kitchenpulse -d kitchenpulse"]
       interval: 5s
@@ -57,17 +58,36 @@ services:
     build: ./gateway
     container_name: kitchenpulse-gateway
     depends_on:
+      - user-service
       - order-service
       - inventory-service
       - notify-service
     environment:
       JWT_SECRET: ${JWT_SECRET:-kitchenpulse-dev-only-change-me-32bytes-min}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+      USER_SERVICE_URI: http://user-service:8084
       ORDER_SERVICE_URI: http://order-service:8081
       INVENTORY_SERVICE_URI: http://inventory-service:8082
       NOTIFY_SERVICE_URI: http://notify-service:8083
     ports:
       - "8088:8088"
+    profiles: ["full"]
+
+  user-service:
+    build: ./user-service
+    container_name: kitchenpulse-user
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8084
+      DATABASE_URL: jdbc:postgresql://postgres:5432/kitchenpulse_users
+      DATABASE_USER: kitchenpulse
+      DATABASE_PASSWORD: kitchenpulse
+      JWT_SECRET: ${JWT_SECRET:-kitchenpulse-dev-only-change-me-32bytes-min}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+    ports:
+      - "8084:8084"
     profiles: ["full"]
 
   order-service:

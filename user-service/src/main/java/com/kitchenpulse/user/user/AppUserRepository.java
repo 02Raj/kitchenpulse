@@ -1,4 +1,4 @@
-package com.kitchenpulse.order.user;
+package com.kitchenpulse.user.user;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,4 +1,4 @@
-package com.kitchenpulse.order.auth;
+package com.kitchenpulse.user.auth;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

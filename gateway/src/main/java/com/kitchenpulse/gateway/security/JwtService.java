@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -29,9 +31,18 @@ public class JwtService {
 				.build()
 				.parseSignedClaims(token)
 				.getPayload();
-		return new Principal(UUID.fromString(claims.getSubject()), claims.get("email", String.class));
+		List<String> roles = new ArrayList<>();
+		Object raw = claims.get("roles");
+		if (raw instanceof List<?> list) {
+			for (Object item : list) {
+				if (item != null) {
+					roles.add(item.toString());
+				}
+			}
+		}
+		return new Principal(UUID.fromString(claims.getSubject()), claims.get("email", String.class), roles);
 	}
 
-	public record Principal(UUID userId, String email) {
+	public record Principal(UUID userId, String email, List<String> roles) {
 	}
 }

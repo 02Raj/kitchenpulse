@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/kitchenpulse_users
+    username: postgres
+    password: YOUR_POSTGRES_PASSWORD
+
+kitchenpulse:
+  jwt:
+    secret: kitchenpulse-dev-only-change-me-32bytes-min

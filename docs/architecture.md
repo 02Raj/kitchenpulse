@@ -2,15 +2,15 @@
 
 ## Why this shape
 
-Interviewers have seen six-service e-commerce + Eureka + Keycloak. This repo is a **kitchen order spine**: three business services, one edge, polyglot persistence, and Kafka only where the work is async.
+Interviewers have seen six-service e-commerce + Eureka + Keycloak. This repo is a **kitchen order spine**: user service (auth + RBAC), three business services, one edge, polyglot persistence, and Kafka only where the work is async.
 
 ```
 Angular (signals)
         |
         v
-   gateway :8088   JWT + CORS + routes. No Eureka.
+   gateway :8088   JWT + CORS + RBAC + routes. No Eureka.
         |
-        +-- /api/auth/**      -> order-service :8081   (Postgres: users)
+        +-- /api/auth/**, /api/users/** -> user-service :8084 (Postgres: users + roles)
         +-- /api/orders/**    -> order-service :8081   (Postgres: orders + outbox)
         +-- /api/inventory/** -> inventory-service :8082  (Mongo: menu + stock)
         +-- /api/kitchen/**   -> notify-service :8083     (Mongo: tickets)
@@ -28,6 +28,7 @@ Angular (signals)
 
 | Store | Owner | Reason |
 |-------|--------|--------|
+| PostgreSQL | user-service | Users, roles (`STAFF`, `KITCHEN`, `ADMIN`), JWT issuance |
 | PostgreSQL | order-service | ACID place-order, unique `idempotency_key`, transactional outbox |
 | MongoDB | inventory-service | Menu item documents + stock counters |
 | MongoDB | notify-service | Kitchen tickets (append-heavy, no joins) |

@@ -1,0 +1,9 @@
+# Copy to application-local.yml (gitignored) for local MongoDB.
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/kitchenpulse_inventory
+
+kitchenpulse:
+  jwt:
+    secret: kitchenpulse-dev-only-change-me-32bytes-min

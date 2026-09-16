@@ -1,0 +1,34 @@
+server:
+  port: ${SERVER_PORT:8084}
+
+spring:
+  config:
+    import: optional:classpath:application-local.yml
+  application:
+    name: user-service
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/kitchenpulse_users}
+    username: ${DATABASE_USER:kitchenpulse}
+    password: ${DATABASE_PASSWORD:kitchenpulse}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info
+  endpoint:
+    health:
+      show-details: always
+
+kitchenpulse:
+  jwt:
+    secret: ${JWT_SECRET:kitchenpulse-dev-only-change-me-32bytes-min}
+    ttl: 12h
+  cors:
+    origins: ${CORS_ORIGINS:http://localhost:4200}

@@ -7,18 +7,44 @@ import { AuthService } from '../../core/auth.service';
   selector: 'app-register-page',
   imports: [ReactiveFormsModule, RouterLink],
   template: `
-    <main class="layout">
-      <h1>Register</h1>
-      <form class="panel" [formGroup]="form" (ngSubmit)="submit()">
-        <label>Email <input formControlName="email" /></label>
-        <p></p>
-        <label>Password <input type="password" formControlName="password" /></label>
-        <p></p>
-        <button [disabled]="pending()">Create</button>
-        @if (error()) { <p class="error">{{ error() }}</p> }
-      </form>
-      <p><a routerLink="/login">Back to login</a></p>
-    </main>
+    <div class="auth-page">
+      <aside class="auth-hero">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">KP</div>
+          <span class="brand-name">KitchenPulse</span>
+        </div>
+        <h1>Join the line.</h1>
+        <p class="tagline">
+          Register a staff account, then place orders from the menu and watch tickets appear on the
+          kitchen board in near real time.
+        </p>
+      </aside>
+      <section class="auth-panel-wrap">
+        <div class="auth-panel">
+          <h2>Create account</h2>
+          <p class="sub">Use a work email and a password of at least 8 characters.</p>
+          <form class="panel" [formGroup]="form" (ngSubmit)="submit()">
+            <div class="field">
+              <label for="reg-email">Email</label>
+              <input id="reg-email" type="email" autocomplete="email" formControlName="email" />
+            </div>
+            <div class="field">
+              <label for="reg-password">Password</label>
+              <input id="reg-password" type="password" autocomplete="new-password" formControlName="password" />
+            </div>
+            <button class="btn-primary btn-block" type="submit" [disabled]="pending()">
+              {{ pending() ? 'Creating…' : 'Create account' }}
+            </button>
+            @if (error()) {
+              <p class="error">{{ error() }}</p>
+            }
+          </form>
+          <p class="auth-footer">
+            Already have access? <a routerLink="/login">Sign in</a>
+          </p>
+        </div>
+      </section>
+    </div>
   `
 })
 export class RegisterPage {
